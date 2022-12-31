@@ -1,7 +1,13 @@
 
+
+if (isLoggedIn()){
+  location.href = '/login.html'
+}
+
 const messInput = document.getElementById('messInput');
 const messSubmit = document.getElementById('messSubmit');
 const messList = document.getElementById('messList');
+
 
 const data = [];
 
@@ -92,6 +98,13 @@ function writeMessage(messages) {
 
 }
 console.log(`data before load  ${data}`);
+
+function isLoggedIn() {
+  return true
+}
+
+
+
 
 
 

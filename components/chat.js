@@ -1,15 +1,15 @@
 
 
-if (isLoggedIn()){
-  location.href = '/login.html'
-}
 
 const messInput = document.getElementById('messInput');
 const messSubmit = document.getElementById('messSubmit');
 const messList = document.getElementById('messList');
 
-
 const data = [];
+
+getData();
+messSubmit.addEventListener('click', addMessage);
+console.log(`data before load  ${data}`);
 
 function addMessage(e) {
   e.preventDefault();
@@ -37,7 +37,6 @@ function addMessage(e) {
   messList.appendChild(newMess);
   sendData(message)
 }
-messSubmit.addEventListener('click', addMessage);
 
 //send data to server async await
 async function sendData(str) {
@@ -71,7 +70,6 @@ async function getData() {
   }
   writeMessage(data)
 }
-getData();
 
 //write all data in messList
 function writeMessage(messages) {
@@ -97,11 +95,8 @@ function writeMessage(messages) {
   })
 
 }
-console.log(`data before load  ${data}`);
 
-function isLoggedIn() {
-  return true
-}
+
 
 
 

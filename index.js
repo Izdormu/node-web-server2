@@ -13,13 +13,18 @@ function generateId() {
   return `${timestamp}-${randomNumber}`;
 }
 
+
+
 const db = JSON.parse(fs.readFileSync('./db.json', 'utf8'))
 const users = JSON.parse(fs.readFileSync('./users.json', 'utf8'))
+const maxAge = 60000
 
 
 async function handleRequest(request, response) {
-  if (request.method === "POST") {
-    if (request.url === "/api/data") {
+  const {method, url} = request
+
+  if (method === "POST") {
+    if (url === "/api/data") {
       try {
         const body = await getBody(request);
         const newMessage = JSON.parse(body);
@@ -31,7 +36,7 @@ async function handleRequest(request, response) {
         response.statusCode = 500;
         response.end("Internal Server Error\n");
       }
-    } else if (request.url === "/api/signup") {
+    } else if (url === "/api/signup") {
       try {
         const body = await getBody(request);
         const newUser = JSON.parse(body);
@@ -44,32 +49,32 @@ async function handleRequest(request, response) {
         response.statusCode = 500;
         response.end("Internal Server Error\n");
       }
-    } else if (request.url === '/api/signin') {
+    } else if (url === '/api/signin') {
       try {
         const body = await getBody(request);
-        const user = JSON.parse(body)
-        const checkUser = users.find(
-          user => user.name === user.name
-            && user.password === user.password
+        const checkedUser = JSON.parse(body)
+        const foundUser = users.find(
+          user => user.name === checkedUser.name
+          && user.password === checkedUser.password
         )
-        if (checkUser) {
-          const token = jwt.sign({ user }, secret)
-          response.setHeader("Set-Cookie", `token=${token}; Max-Age=${maxAge}`);
+        if (foundUser) {
+          const token = foundUser.id
+          response.setHeader("Set-Cookie", `token=${token}; Max-Age=${maxAge}; Path=/ ` );
           response.end("OK\n");
         }
         else {
           response.statusCode = 401;
           response.end("Unauthorized\n");
         }
-      } catch {
+      } catch (error) {
         console.error(error);
-        response.statusCode = 500;
         response.statusCode = 500;
         response.end("Internal Server Error\n");
       }
     }
-  } else if (request.method === "GET") {
-    if (request.url === "/api/data") {
+  } 
+  else if (method === "GET") {
+    if (url === "/api/data") {
       let data;
       try {
         data = fs.readFileSync("db.json");
@@ -78,20 +83,26 @@ async function handleRequest(request, response) {
       }
       response.statusCode = 200;
       response.end(data);
-    } else {
-      if (request.url === "/") {
+    }
+    else if(url === '/api/token'){
+      const token = getToken(request)
+      const found = 
+
+    }
+    else {
+      if (url === "/") {
         const html = fs.readFileSync("index.html");
         response.end(html);
         return;
       }
       try {
-        if (blacklist.includes(request.url)) throw null;
-        const file = fs.readFileSync(request.url.slice(1));
+        if (blacklist.includes(url)) throw null;
+        const file = fs.readFileSync(url.slice(1));
         response.end(file);
       } catch (error) {
         response.statusCode = 404; // Not found
         response.end(
-          `<div>Error, ${request.url.slice(
+          `<div>Error, ${url.slice(
             1
           )} does not exist<div><br><a href="http://localhost:3000/">Try this<a>`
         );
@@ -114,4 +125,11 @@ function getBody(req) {
       reject(error)
     })
   })
+}
+
+function getToken(request){
+  const cookie = request.document.cookie;
+  const regex = /(?:^| )token=([^;]+)/;
+  const match = cookie.match(regex);
+  return match
 }

@@ -1,6 +1,4 @@
-if (isLoggedIn()) {
-  location.href = '/login.html'
-}
+isLoggedIn();
 
 const signUpBtn = document.querySelector("#registration")
 const signUpForm = document.querySelector(".signup-form")
@@ -71,13 +69,25 @@ async function isLoggedIn() {
   const cookie = document.cookie;
   const regex = /(?:^| )token=([^;]+)/;
   const match = cookie.match(regex);
+  const token = match ? match[1] : null;
 
-  const response = await fetch("/api/token")
+  if (!token) {
+    location.href = '/login.html';
+    return;
+  }
 
-
-
-
+  const response = await fetch("/api/token", {
+    headers: {
+      Cookie: `token=${token}`
+    }
+  });
+  if (response.status !== 200) {
+    location.href = '/index.html';
+  }
 }
+
+
+
 
 
 

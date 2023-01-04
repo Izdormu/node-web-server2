@@ -84,11 +84,15 @@ async function handleRequest(request, response) {
       response.statusCode = 200;
       response.end(data);
     }
-    else if(url === '/api/token'){
-      const token = getToken(request)
-      const found = 
-
-    }
+    else if (url === '/api/token') {
+      const token = getToken(request);
+      const foundUser = users.find(user => user.id === token);
+      if (foundUser) {
+        response.end("OK\n");
+      } else {
+        response.statusCode = 401;
+        response.end("Unauthorized\n");
+      }}
     else {
       if (url === "/") {
         const html = fs.readFileSync("index.html");
@@ -128,7 +132,7 @@ function getBody(req) {
 }
 
 function getToken(request){
-  const cookie = request.document.cookie;
+  const cookie = request.headers.cookie;
   const regex = /(?:^| )token=([^;]+)/;
   const match = cookie.match(regex);
   return match

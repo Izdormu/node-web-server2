@@ -4,11 +4,21 @@
 const messInput = document.getElementById('messInput');
 const messSubmit = document.getElementById('messSubmit');
 const messList = document.getElementById('messList');
-
+const logoutBtn = document.querySelector('#logout')
 const data = [];
+let userId = ''
 
 getData();
+getId();
 messSubmit.addEventListener('click', addMessage);
+
+logoutBtn.addEventListener("click", () => {
+  // Set the 'token' cookie's expiration date to a time in the past
+  document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  // Redirect to the login page
+  location.href = "/login.html";
+});
+
 console.log(`data before load  ${data}`);
 
 function addMessage(e) {
@@ -87,7 +97,6 @@ function writeMessage(messages) {
       if (index > -1) {
         data.splice(index, 1);
       }
-      sendData(data);
     });
     newMess.innerText = message
     newMess.appendChild(deleteButton);
@@ -95,6 +104,17 @@ function writeMessage(messages) {
   })
 
 }
+
+async function getId(){
+ const response = await fetch('/api/user')
+ if (response.ok) {
+  userId = await response.text()
+ }
+ console.log(`User id is ${userId}`)
+}
+
+
+
 
 
 

@@ -161,7 +161,7 @@ async function handleRequest(request, response) {
       const token = getToken(request);
 
       // Find the user with a matching ID in the 'users.json' file
-      const foundUser = users.find((user) => user.id === token);
+      const foundUser = users.find((user) => user.token === token);
 
       if (foundUser) {
         // If the user is found, send an "OK" response
@@ -171,7 +171,24 @@ async function handleRequest(request, response) {
         response.statusCode = 401;
         response.end("Unauthorized\n");
       }
-    } else {
+    } else if(url === '/api/user'){
+      // Get the token from the request header
+      const token = getToken(request);
+
+      // Find the user with a matching token in the 'users.json' file
+      const foundUser = users.find((user) => user.token === token);
+
+      if (foundUser) {
+        console.log(foundUser)
+        // If the user is found, send an "OK" response
+        response.end(foundUser.id);
+      } else {
+        // If the user is not found, send a "Unauthorized" response
+        response.statusCode = 401;
+        response.end("Cant find user\n");
+      }
+
+    }else {
       // Handle requests for static files
       if (url === "/") {
         // Read the 'index.html' file and send its contents to the client
@@ -224,4 +241,6 @@ function getToken(request) {
   if (!tokenMatch) return null;
   return tokenMatch[1];
 }
+
+
 

@@ -1,13 +1,13 @@
-const signUpBtn = document.querySelector("#registration");
+const signUpBtn = document.querySelector("#signup");
 const signUpForm = document.querySelector(".signup-form");
 const signInForm = document.querySelector(".signin-form");
 const cancelBtn = document.querySelector("#cancel");
 const saveUserBtn = document.querySelector("#saveUser");
+const login = document.querySelector('#login')
 
 
-
-signUpBtn.addEventListener("click", toggleFormMode);
 cancelBtn.addEventListener("click", toggleFormMode);
+signUpBtn.addEventListener("click", toggleFormMode);
 signUpForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const password = signUpForm.password.value;

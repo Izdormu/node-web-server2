@@ -78,11 +78,11 @@ async function getData() {
   } catch (error) {
     console.error(error);
   }
-  writeMessage(data)
+  writeMessages(data)
 }
 
 //write all data in messList
-function writeMessage(messages) {
+function writeMessages(messages) {
   messages.forEach(message => {
     const newMess = document.createElement('li');
     newMess.classList.add('message-container');
@@ -97,6 +97,7 @@ function writeMessage(messages) {
       if (index > -1) {
         data.splice(index, 1);
       }
+      sendData(data)
     });
     newMess.innerText = message
     newMess.appendChild(deleteButton);

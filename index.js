@@ -1,12 +1,50 @@
 const http = require("http");
 const fs = require("fs");
 const blacklist = require("./blacklist");
+const ws = require('ws')
 
 const port = 3000;
 const server = http.createServer(handleRequest);
+const wsServer = new ws.Server({ port: 4000 })
+//create data for connecting clients
+const wsClients = []
+
+// Parse the JSON data from the 'db.json' and 'users.json' files
+const db = JSON.parse(fs.readFileSync("./db.json", "utf8"));
+const users = JSON.parse(fs.readFileSync("./users.json", "utf8"));
+
+// The maximum age of the token cookie in milliseconds
+const maxAge = 60000;
+
 server.listen(port, () => {
   console.log(`server is listening on http://localhost:${port}`);
 });
+//if we are have connection with client
+wsServer.on('connection', (client) => {
+  //add this client to ws data
+  wsClients.push(client)
+
+//if client closed,delete from ws data
+  client.on('close', () => {
+    const i = wsClients.indexOf(client)
+    wsClients.splice(i, 1)
+  })
+})
+
+//add function to folders where we want to check changes
+fs.watch('public/components', handleWatch)
+fs.watch('public/styles', handleWatch)
+fs.watch('public/img', handleWatch)
+fs.watch('public', handleWatch)
+
+//if we have changes ,send 'reload' to client
+function handleWatch(eventType) {
+  if (eventType === 'change') {
+    for (const client of wsClients) {
+      client.send('reload')
+    }
+  }
+}
 
 // Generate a unique ID for a new user
 function generateId() {
@@ -15,12 +53,6 @@ function generateId() {
   return `${timestamp}-${randomNumber}`;
 }
 
-// Parse the JSON data from the 'db.json' and 'users.json' files
-const db = JSON.parse(fs.readFileSync("./db.json", "utf8"));
-const users = JSON.parse(fs.readFileSync("./users.json", "utf8"));
-
-// The maximum age of the token cookie in milliseconds
-const maxAge = 60000;
 
 async function handleRequest(request, response) {
   // Destructure the request method and URL
@@ -87,9 +119,12 @@ async function handleRequest(request, response) {
         if (foundUser) {
           // If the user is found
           // Generate a token for the user
-          const token = foundUser.id;
+          const token = generateId()
+          foundUser.token = token
+          fs.writeFileSync("users.json", JSON.stringify(users, null, 2));
+          console.log(foundUser)
 
-          // Set the token cookie in the response header
+          // Set thhe token cookie in the response header
           response.setHeader(
             "Set-Cookie",
             `token=${token}; Max-Age=${maxAge}; Path=/ `
@@ -108,7 +143,7 @@ async function handleRequest(request, response) {
         response.end("Internal Server Error\n");
       }
     }
-  } 
+  }
   // Handle GET requests
   else if (method === "GET") {
     if (url === "/api/data") {
@@ -140,7 +175,7 @@ async function handleRequest(request, response) {
       // Handle requests for static files
       if (url === "/") {
         // Read the 'index.html' file and send its contents to the client
-        const html = fs.readFileSync("index.html");
+        const html = fs.readFileSync("public/index.html");
         response.end(html);
         return;
       }
@@ -149,7 +184,7 @@ async function handleRequest(request, response) {
         if (blacklist.includes(url)) throw null;
 
         // Read the requested file and send its contents to the client
-        const file = fs.readFileSync(url.slice(1));
+        const file = fs.readFileSync('public/' + url.slice(1));
         response.end(file);
       } catch (error) {
         // If the file is not found, send a "404 Not found" response
@@ -190,4 +225,3 @@ function getToken(request) {
   return tokenMatch[1];
 }
 
-    
